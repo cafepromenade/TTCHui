@@ -1,0 +1,14 @@
+{
+  "domain": "ttc_service_alerts",
+  "name": "TTC Service Alerts",
+  "version": "1.0.0",
+  "documentation": "https://github.com/cafepromenade/TTCHui",
+  "issue_tracker": "https://github.com/cafepromenade/TTCHui/issues",
+  "codeowners": ["@cafepromenade"],
+  "config_flow": true,
+  "iot_class": "cloud_polling",
+  "integration_type": "service",
+  "requirements": ["gtfs-realtime-bindings==2.0.0"],
+  "dependencies": []
+}
+

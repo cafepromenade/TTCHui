@@ -1,0 +1,46 @@
+{
+  "title": "TTC Service Alerts",
+  "config": {
+    "step": {
+      "user": {
+        "title": "TTC Service Alerts",
+        "description": "Poll live TTC GTFS-RT service alerts.",
+        "data": {
+          "name": "Device name",
+          "feed": "Feed",
+          "route_filter": "Tracked routes, optional comma-separated",
+          "poll_seconds": "Poll interval in seconds",
+          "upcoming_hours": "Upcoming alert horizon in hours",
+          "max_alerts": "Maximum alerts stored in attributes"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not fetch or parse the TTC GTFS-RT feed.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This TTC feed is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "TTC Service Alerts options",
+        "data": {
+          "name": "Device name",
+          "feed": "Feed",
+          "route_filter": "Tracked routes, optional comma-separated",
+          "poll_seconds": "Poll interval in seconds",
+          "upcoming_hours": "Upcoming alert horizon in hours",
+          "max_alerts": "Maximum alerts stored in attributes"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not fetch or parse the TTC GTFS-RT feed.",
+      "unknown": "Unexpected error."
+    }
+  }
+}
+

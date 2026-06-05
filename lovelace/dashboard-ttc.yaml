@@ -1,0 +1,24 @@
+title: TTC
+views:
+  - title: TTC
+    path: ttc
+    icon: mdi:train-car
+    cards:
+      - type: custom:ttc-service-alerts-card
+        entity: sensor.ttc_service_alerts
+        subway_entity: sensor.ttc_subway_status
+        surface_entity: sensor.ttc_surface_alerts
+        accessibility_entity: sensor.ttc_accessibility_alerts
+        tracked_entity: sensor.ttc_tracked_routes
+        title: TTC Service
+        max_items: 10
+      - type: entities
+        title: TTC Sensors
+        entities:
+          - sensor.ttc_service_alerts
+          - sensor.ttc_subway_status
+          - sensor.ttc_surface_alerts
+          - sensor.ttc_accessibility_alerts
+          - sensor.ttc_tracked_routes
+          - sensor.ttc_feed_updated
+

@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TTC Service Alerts Card Preview</title>
+  <style>
+    :root {
+      --primary-text-color: #17212b;
+      --secondary-text-color: #657181;
+      --primary-color: #005eb8;
+      --success-color: #237a3b;
+      --error-color: #b3261e;
+      --divider-color: #d7dde5;
+      --secondary-background-color: #f3f6f9;
+      --card-background-color: #ffffff;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #edf1f5;
+      display: grid;
+      place-items: start center;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+    main {
+      width: min(980px, 100%);
+    }
+    ha-card {
+      display: block;
+      background: var(--card-background-color);
+      border-radius: 8px;
+      box-shadow: 0 8px 28px rgba(23, 33, 43, 0.12);
+      overflow: hidden;
+    }
+    ha-icon {
+      width: 20px;
+      height: 20px;
+      display: inline-grid;
+      place-items: center;
+      font-size: 14px;
+      line-height: 1;
+    }
+    #calls {
+      margin-top: 12px;
+      color: #657181;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <ttc-service-alerts-card></ttc-service-alerts-card>
+    <div id="calls"></div>
+  </main>
+
+  <script>
+    customElements.define("ha-icon", class extends HTMLElement {
+      connectedCallback() {
+        const icon = this.getAttribute("icon") || "";
+        this.textContent = icon.includes("refresh") ? "R" : icon.includes("bus") ? "B" : icon.includes("subway") ? "S" : icon.includes("elevator") ? "E" : "T";
+      }
+    });
+  </script>
+  <script src="../lovelace/ttc-service-alerts-card.js"></script>
+  <script>
+    const now = new Date();
+    const plusOne = new Date(now.getTime() + 60 * 60 * 1000).toISOString();
+    const plusFour = new Date(now.getTime() + 4 * 60 * 60 * 1000).toISOString();
+    const activeAlerts = [
+      {
+        id: "line-1",
+        header: "Line 1 Yonge-University: Delays southbound from St Clair to Wellesley stations due to a reduced speed zone.",
+        description: "Customers may experience longer than normal travel times.",
+        effect_label: "Delays",
+        effect: "SIGNIFICANT_DELAYS",
+        severity: 40,
+        mode: "subway",
+        routes: ["1"],
+        route_labels: ["Line 1 Yonge-University"],
+        start: now.toISOString(),
+        tracked: true
+      },
+      {
+        id: "512",
+        header: "512 St Clair: No service between St Clair West Station and Oakwood Ave due to a blocked track.",
+        description: "Shuttle buses are on the way.",
+        effect_label: "No service",
+        effect: "NO_SERVICE",
+        severity: 50,
+        mode: "streetcar",
+        routes: ["512"],
+        route_labels: ["512 St Clair"],
+        start: now.toISOString(),
+        url: "https://www.ttc.ca/",
+        tracked: true
+      },
+      {
+        id: "access",
+        header: "St Clair: Escalator out of service from south concourse to streetcar platform.",
+        description: "Maintenance crews are responding.",
+        effect_label: "Accessibility issue",
+        effect: "ACCESSIBILITY_ISSUE",
+        severity: 20,
+        mode: "accessibility",
+        routes: [],
+        route_labels: [],
+        start: now.toISOString(),
+        tracked: false
+      }
+    ];
+    const upcomingAlerts = [
+      {
+        id: "planned",
+        header: "Line 1 Yonge-University: Planned early closure between St George and Sheppard West.",
+        description: "Shuttle buses will operate.",
+        effect_label: "No service",
+        effect: "NO_SERVICE",
+        severity: 50,
+        mode: "subway",
+        routes: ["1"],
+        route_labels: ["Line 1 Yonge-University"],
+        start: plusOne,
+        end: plusFour,
+        tracked: true
+      }
+    ];
+    const hass = {
+      states: {
+        "sensor.ttc_service_alerts": {
+          state: "3",
+          attributes: {
+            active_count: 3,
+            upcoming_count: 1,
+            highest_status: "No service",
+            fetched_at: now.toISOString(),
+            active_alerts: activeAlerts,
+            upcoming_alerts: upcomingAlerts
+          }
+        },
+        "sensor.ttc_subway_status": {
+          state: "Delays",
+          attributes: {
+            status: "Delays",
+            active_count: 1,
+            upcoming_count: 1,
+            lines: [
+              { route_id: "1", name: "Line 1 Yonge-University", status: "Delays", active_count: 1, upcoming_count: 1 },
+              { route_id: "2", name: "Line 2 Bloor-Danforth", status: "Normal service", active_count: 0, upcoming_count: 0 },
+              { route_id: "4", name: "Line 4 Sheppard", status: "Normal service", active_count: 0, upcoming_count: 0 },
+              { route_id: "5", name: "Line 5 Eglinton", status: "Normal service", active_count: 0, upcoming_count: 0 }
+            ],
+            alerts: [activeAlerts[0]],
+            upcoming_alerts: [upcomingAlerts[0]]
+          }
+        },
+        "sensor.ttc_surface_alerts": {
+          state: "1",
+          attributes: {
+            active_count: 1,
+            upcoming_count: 0,
+            active_route_count: 1,
+            routes: [
+              { route_id: "512", name: "512 St Clair", mode: "streetcar", status: "No service", active_count: 1, upcoming_count: 0 }
+            ],
+            alerts: [activeAlerts[1]],
+            upcoming_alerts: []
+          }
+        },
+        "sensor.ttc_accessibility_alerts": {
+          state: "1",
+          attributes: {
+            status: "Accessibility issue",
+            active_count: 1,
+            upcoming_count: 0,
+            alerts: [activeAlerts[2]],
+            upcoming_alerts: []
+          }
+        },
+        "sensor.ttc_tracked_routes": {
+          state: "2",
+          attributes: {
+            enabled: true,
+            routes: ["1", "512"],
+            active_count: 2,
+            upcoming_count: 1,
+            active_alerts: [activeAlerts[0], activeAlerts[1]],
+            upcoming_alerts: [upcomingAlerts[0]]
+          }
+        }
+      },
+      callService(domain, service, data) {
+        document.getElementById("calls").textContent = `Service called: ${domain}.${service} ${JSON.stringify(data || {})}`;
+      }
+    };
+    const card = document.querySelector("ttc-service-alerts-card");
+    card.setConfig({ title: "TTC Service", max_items: 10 });
+    card.hass = hass;
+  </script>
+</body>
+</html>
+
