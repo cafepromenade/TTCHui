@@ -20,6 +20,12 @@ Data source: `https://gtfsrt.ttc.ca/alerts/all?format=binary`
 
 ## Install With HACS
 
+Repository URL:
+
+```text
+https://github.com/cafepromenade/TTCHui
+```
+
 1. In HACS, open Integrations, then Custom repositories.
 2. Add this repository URL with category Integration.
 3. Install TTC Hui and restart Home Assistant.
@@ -102,4 +108,3 @@ python scripts/smoke_live_feed.py
 ## Attribution
 
 Contains information licensed under the Open Government Licence - Toronto.
-
