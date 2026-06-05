@@ -21,4 +21,7 @@ views:
           - sensor.ttc_accessibility_alerts
           - sensor.ttc_tracked_routes
           - sensor.ttc_feed_updated
-
+          - sensor.ttc_line_1_status
+          - sensor.ttc_line_2_status
+          - sensor.ttc_line_4_status
+          - sensor.ttc_line_5_status

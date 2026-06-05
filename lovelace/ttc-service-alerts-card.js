@@ -227,7 +227,7 @@ class TtcServiceAlertsCard extends HTMLElement {
           .ttc-lines,
           .ttc-routes {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
             gap: 8px;
           }
           .ttc-line,
@@ -239,23 +239,51 @@ class TtcServiceAlertsCard extends HTMLElement {
             padding: 9px 10px;
             min-width: 0;
           }
+          .ttc-line-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+            min-width: 0;
+          }
           .ttc-line strong,
           .ttc-route strong {
             display: block;
             font-size: 0.9rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            overflow-wrap: anywhere;
           }
-          .ttc-line span,
+          .ttc-line-status,
           .ttc-route span {
             display: block;
             color: var(--secondary-text-color);
             margin-top: 2px;
             font-size: 0.76rem;
+            line-height: 1.25;
+          }
+          .ttc-line-badge {
+            border: 1px solid var(--divider-color);
+            border-radius: 999px;
+            padding: 2px 7px;
+            color: var(--secondary-text-color);
+            font-size: 0.7rem;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+          }
+          .ttc-line-delay {
+            margin-top: 7px;
+            color: var(--primary-text-color);
+            font-size: 0.8rem;
+            line-height: 1.32;
+            overflow-wrap: anywhere;
+          }
+          .ttc-line-delay.muted {
+            color: var(--secondary-text-color);
+          }
+          .ttc-line-delay + .ttc-line-delay {
+            margin-top: 5px;
+          }
+          .ttc-delay-label {
+            color: var(--secondary-text-color);
+            font-weight: 650;
           }
           .ttc-alerts {
             display: grid;
@@ -446,12 +474,50 @@ class TtcServiceAlertsCard extends HTMLElement {
     if (!lines.length) return this._empty("No subway line data.");
     return `<div class="ttc-lines">${lines.map((line) => {
       const status = line.status || "Normal service";
+      const activeCount = Number(line.active_count || 0);
+      const upcomingCount = Number(line.upcoming_count || 0);
+      const countText = activeCount
+        ? `${activeCount} active${upcomingCount ? `, ${upcomingCount} upcoming` : ""}`
+        : upcomingCount
+          ? `${upcomingCount} upcoming`
+          : "Clear";
       return `
         <div class="ttc-line ${this._statusTone(status)}">
-          <strong>${this._esc(line.name || line.route_id)}</strong>
-          <span>${this._esc(status)}${Number(line.upcoming_count || 0) ? `, ${Number(line.upcoming_count)} upcoming` : ""}</span>
+          <div class="ttc-line-head">
+            <div>
+              <strong>${this._esc(line.name || line.route_id)}</strong>
+              <span class="ttc-line-status">${this._esc(status)}</span>
+            </div>
+            <span class="ttc-line-badge">${this._esc(countText)}</span>
+          </div>
+          ${this._lineDelayDetails(line)}
         </div>`;
     }).join("")}</div>`;
+  }
+
+  _lineDelayDetails(line) {
+    const active = line.delay_alerts && line.delay_alerts.length ? line.delay_alerts : line.alerts || [];
+    const upcoming = line.upcoming_delay_alerts && line.upcoming_delay_alerts.length ? line.upcoming_delay_alerts : line.upcoming_alerts || [];
+    const details = [
+      ...active.slice(0, 2).map((alert) => this._lineDelay(alert, "Now")),
+      ...upcoming.slice(0, 2).map((alert) => this._lineDelay(alert, "Upcoming")),
+    ];
+    if (!details.length) {
+      return `<div class="ttc-line-delay muted">No current delay info.</div>`;
+    }
+    return details.join("");
+  }
+
+  _lineDelay(alert, label) {
+    const summary = alert.summary || alert.header || "TTC service alert";
+    const time = this._timeRange(alert.start, alert.end);
+    const effect = alert.effect_label || "Alert";
+    return `
+      <div class="ttc-line-delay">
+        <span class="ttc-delay-label">${this._esc(label)} ${this._esc(effect)}:</span>
+        ${this._esc(summary)}
+        <span class="ttc-delay-label">${this._esc(time)}</span>
+      </div>`;
   }
 
   _routeGrid(routes) {

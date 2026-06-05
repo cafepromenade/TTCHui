@@ -147,10 +147,59 @@
             active_count: 1,
             upcoming_count: 1,
             lines: [
-              { route_id: "1", name: "Line 1 Yonge-University", status: "Delays", active_count: 1, upcoming_count: 1 },
-              { route_id: "2", name: "Line 2 Bloor-Danforth", status: "Normal service", active_count: 0, upcoming_count: 0 },
-              { route_id: "4", name: "Line 4 Sheppard", status: "Normal service", active_count: 0, upcoming_count: 0 },
-              { route_id: "5", name: "Line 5 Eglinton", status: "Normal service", active_count: 0, upcoming_count: 0 }
+              {
+                route_id: "1",
+                name: "Line 1 Yonge-University",
+                status: "Delays",
+                service_status: "Delays",
+                active_count: 1,
+                upcoming_count: 1,
+                delay_count: 1,
+                upcoming_delay_count: 1,
+                delay_summary: activeAlerts[0].header,
+                upcoming_delay_summary: upcomingAlerts[0].header,
+                delay_alerts: [{ ...activeAlerts[0], summary: activeAlerts[0].header }],
+                upcoming_delay_alerts: [{ ...upcomingAlerts[0], summary: upcomingAlerts[0].header }]
+              },
+              {
+                route_id: "2",
+                name: "Line 2 Bloor-Danforth",
+                status: "Normal service",
+                service_status: "Normal service",
+                active_count: 0,
+                upcoming_count: 0,
+                delay_count: 0,
+                upcoming_delay_count: 0,
+                delay_summary: "No current delay info.",
+                delay_alerts: [],
+                upcoming_delay_alerts: []
+              },
+              {
+                route_id: "4",
+                name: "Line 4 Sheppard",
+                status: "Normal service",
+                service_status: "Normal service",
+                active_count: 0,
+                upcoming_count: 0,
+                delay_count: 0,
+                upcoming_delay_count: 0,
+                delay_summary: "No current delay info.",
+                delay_alerts: [],
+                upcoming_delay_alerts: []
+              },
+              {
+                route_id: "5",
+                name: "Line 5 Eglinton",
+                status: "Normal service",
+                service_status: "Normal service",
+                active_count: 0,
+                upcoming_count: 0,
+                delay_count: 0,
+                upcoming_delay_count: 0,
+                delay_summary: "No current delay info.",
+                delay_alerts: [],
+                upcoming_delay_alerts: []
+              }
             ],
             alerts: [activeAlerts[0]],
             upcoming_alerts: [upcomingAlerts[0]]
@@ -201,4 +250,3 @@
   </script>
 </body>
 </html>
-

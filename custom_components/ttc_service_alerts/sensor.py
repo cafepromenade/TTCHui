@@ -15,6 +15,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import ATTR_ATTRIBUTION, DOMAIN
 from .coordinator import TtcServiceAlertsCoordinator
+from .parser import SUBWAY_LINES
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -64,6 +65,42 @@ def _nested_attrs(key: str) -> Callable[[dict[str, Any]], dict[str, Any]]:
 def _tracked_attrs(data: dict[str, Any]) -> dict[str, Any]:
     tracked = data.get("tracked", {})
     return {**_base_attrs(data), **tracked}
+
+
+def _line(data: dict[str, Any], route_id: str) -> dict[str, Any]:
+    return data.get("subway", {}).get("line_statuses", {}).get(
+        route_id,
+        {
+            "route_id": route_id,
+            "name": SUBWAY_LINES.get(route_id, f"Line {route_id}"),
+            "status": "Normal service",
+            "service_status": "Normal service",
+            "active_count": 0,
+            "upcoming_count": 0,
+            "delay_count": 0,
+            "upcoming_delay_count": 0,
+            "delay_summary": "No current delay info.",
+            "upcoming_delay_summary": "No current delay info.",
+            "delay_alerts": [],
+            "upcoming_delay_alerts": [],
+            "alerts": [],
+            "upcoming_alerts": [],
+        },
+    )
+
+
+def _line_value(route_id: str) -> Callable[[dict[str, Any]], Any]:
+    def value(data: dict[str, Any]) -> Any:
+        return _line(data, route_id).get("service_status", "Normal service")
+
+    return value
+
+
+def _line_attrs(route_id: str) -> Callable[[dict[str, Any]], dict[str, Any]]:
+    def attrs(data: dict[str, Any]) -> dict[str, Any]:
+        return {**_base_attrs(data), **_line(data, route_id)}
+
+    return attrs
 
 
 def _parse_dt(value: str | None) -> datetime | None:
@@ -116,6 +153,16 @@ SENSORS: tuple[TtcSensorDescription, ...] = (
         value=lambda data: _parse_dt(data.get("feed_timestamp")),
         attrs=_base_attrs,
     ),
+    *(
+        TtcSensorDescription(
+            key=f"line_{route_id}_status",
+            name=f"Line {route_id} status",
+            icon="mdi:subway-variant",
+            value=_line_value(route_id),
+            attrs=_line_attrs(route_id),
+        )
+        for route_id in SUBWAY_LINES
+    ),
 )
 
 
@@ -162,4 +209,3 @@ class TtcSensor(CoordinatorEntity[TtcServiceAlertsCoordinator], SensorEntity):
         if not self.coordinator.data:
             return {}
         return self.entity_description.attrs(self.coordinator.data)
-

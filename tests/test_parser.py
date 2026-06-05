@@ -99,7 +99,13 @@ def test_parser_summarizes_active_upcoming_and_expired_alerts():
     assert data["active_count"] == 1
     assert data["upcoming_count"] == 1
     assert data["subway"]["status"] == "Delays"
-    assert data["subway"]["lines"][0]["active_count"] == 1
+    line_1 = data["subway"]["line_statuses"]["1"]
+    assert line_1["service_status"] == "Delays"
+    assert line_1["active_count"] == 1
+    assert line_1["delay_count"] == 1
+    assert line_1["delay_alerts"][0]["summary"] == "Line 1 Yonge-University: Delays southbound due to a signal problem."
+    assert line_1["delay_summary"] == "Line 1 Yonge-University: Delays southbound due to a signal problem."
+    assert data["subway"]["line_statuses"]["2"]["service_status"] == "Normal service"
     assert data["surface"]["upcoming_count"] == 1
     assert not any(alert["id"] == "expired-streetcar" for alert in data["active_alerts"])
 
@@ -144,4 +150,3 @@ def test_parser_groups_accessibility_and_route_filters():
     assert data["tracked"]["enabled"] is True
     assert data["tracked"]["active_count"] == 1
     assert data["tracked"]["active_alerts"][0]["id"] == "tracked"
-

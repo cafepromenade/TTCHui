@@ -85,6 +85,18 @@ EFFECT_SEVERITY: dict[str, int] = {
     "UNKNOWN_EFFECT": 10,
 }
 
+LINE_DELAY_EFFECTS = {
+    "NO_SERVICE",
+    "REDUCED_SERVICE",
+    "SIGNIFICANT_DELAYS",
+    "DETOUR",
+    "MODIFIED_SERVICE",
+    "STOP_MOVED",
+    "ACCESSIBILITY_ISSUE",
+    "OTHER_EFFECT",
+    "UNKNOWN_EFFECT",
+}
+
 
 def parse_feed_bytes(
     payload: bytes,
@@ -256,13 +268,22 @@ def _subway_summary(
     for route_id in sorted(route_ids, key=lambda route: int(route) if route.isdigit() else route):
         active = [alert for alert in active_alerts if route_id in alert["routes"] and _is_subway_route(route_id, alert["header"])]
         upcoming = [alert for alert in upcoming_alerts if route_id in alert["routes"] and _is_subway_route(route_id, alert["header"])]
+        active_delay_alerts = _delay_info(active)
+        upcoming_delay_alerts = _delay_info(upcoming)
         lines.append(
             {
                 "route_id": route_id,
                 "name": SUBWAY_LINES.get(route_id, f"Line {route_id}"),
                 "status": _status_from_alerts(active),
+                "service_status": _status_from_alerts(active),
                 "active_count": len(active),
                 "upcoming_count": len(upcoming),
+                "delay_count": len(active_delay_alerts),
+                "upcoming_delay_count": len(upcoming_delay_alerts),
+                "delay_summary": _delay_summary(active_delay_alerts),
+                "upcoming_delay_summary": _delay_summary(upcoming_delay_alerts),
+                "delay_alerts": active_delay_alerts[:6],
+                "upcoming_delay_alerts": upcoming_delay_alerts[:6],
                 "alerts": active[:8],
                 "upcoming_alerts": upcoming[:8],
             }
@@ -275,6 +296,7 @@ def _subway_summary(
         "active_count": len(active_subway),
         "upcoming_count": len(upcoming_subway),
         "lines": lines,
+        "line_statuses": {line["route_id"]: line for line in lines},
         "alerts": active_subway[:20],
         "upcoming_alerts": upcoming_subway[:20],
     }
@@ -356,6 +378,31 @@ def _status_from_alerts(alerts: list[dict[str, Any]]) -> str:
         return "Normal service"
     worst = max(alerts, key=lambda alert: alert.get("severity", 0))
     return worst.get("effect_label") or "Service alert"
+
+
+def _delay_info(alerts: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    delay_alerts = [alert for alert in alerts if alert.get("effect") in LINE_DELAY_EFFECTS]
+    return [
+        {
+            "id": alert.get("id"),
+            "effect": alert.get("effect"),
+            "effect_label": alert.get("effect_label"),
+            "summary": alert.get("header") or "TTC service alert",
+            "description": alert.get("description") or "",
+            "start": alert.get("start"),
+            "end": alert.get("end"),
+            "url": alert.get("url"),
+            "severity": alert.get("severity", 0),
+            "status_label": alert.get("status_label"),
+        }
+        for alert in delay_alerts
+    ]
+
+
+def _delay_summary(delay_alerts: list[dict[str, Any]]) -> str:
+    if not delay_alerts:
+        return "No current delay info."
+    return " | ".join(alert["summary"] for alert in delay_alerts[:3] if alert.get("summary"))
 
 
 def _status_severity(status: str) -> int:
@@ -466,4 +513,3 @@ def _route_sort_value(route: str) -> tuple[int, str]:
     if route.isdigit():
         return int(route), route
     return 99999, route
-
