@@ -69,6 +69,7 @@ A full example view is in `lovelace/dashboard-ttc.yaml`.
 - `sensor.ttc_line_2_status`: Line 2 status with current delay details.
 - `sensor.ttc_line_4_status`: Line 4 status with current delay details.
 - `sensor.ttc_line_5_status`: Line 5 status with current delay details.
+- `sensor.ttc_line_6_status`: Line 6 status with current delay details.
 
 Entity IDs can differ if Home Assistant has already used these names. The card
 lets you override each entity explicitly.

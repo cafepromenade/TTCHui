@@ -25,3 +25,4 @@ views:
           - sensor.ttc_line_2_status
           - sensor.ttc_line_4_status
           - sensor.ttc_line_5_status
+          - sensor.ttc_line_6_status

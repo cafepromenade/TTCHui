@@ -16,6 +16,7 @@ SUBWAY_LINES: dict[str, str] = {
     "2": "Line 2 Bloor-Danforth",
     "4": "Line 4 Sheppard",
     "5": "Line 5 Eglinton",
+    "6": "Line 6 Finch West",
 }
 
 SUBWAY_LINE_PATTERNS: dict[str, re.Pattern[str]] = {
@@ -23,6 +24,7 @@ SUBWAY_LINE_PATTERNS: dict[str, re.Pattern[str]] = {
     "2": re.compile(r"\b(line\s*2|bloor-danforth)\b", re.I),
     "4": re.compile(r"\b(line\s*4|sheppard)\b", re.I),
     "5": re.compile(r"\b(line\s*5|eglinton line)\b", re.I),
+    "6": re.compile(r"\b(line\s*6|finch west)\b", re.I),
 }
 
 STREETCAR_ROUTES = {

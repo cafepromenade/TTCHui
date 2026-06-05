@@ -106,6 +106,8 @@ def test_parser_summarizes_active_upcoming_and_expired_alerts():
     assert line_1["delay_alerts"][0]["summary"] == "Line 1 Yonge-University: Delays southbound due to a signal problem."
     assert line_1["delay_summary"] == "Line 1 Yonge-University: Delays southbound due to a signal problem."
     assert data["subway"]["line_statuses"]["2"]["service_status"] == "Normal service"
+    assert data["subway"]["line_statuses"]["6"]["name"] == "Line 6 Finch West"
+    assert data["subway"]["line_statuses"]["6"]["service_status"] == "Normal service"
     assert data["surface"]["upcoming_count"] == 1
     assert not any(alert["id"] == "expired-streetcar" for alert in data["active_alerts"])
 
@@ -150,3 +152,34 @@ def test_parser_groups_accessibility_and_route_filters():
     assert data["tracked"]["enabled"] is True
     assert data["tracked"]["active_count"] == 1
     assert data["tracked"]["active_alerts"][0]["id"] == "tracked"
+
+
+def test_parser_recognizes_line_6_without_promoting_plain_route_6():
+    now = datetime(2026, 6, 5, 12, 0, tzinfo=timezone.utc)
+    feed = gtfs_realtime_pb2.FeedMessage()
+    feed.header.gtfs_realtime_version = "2.0"
+    feed.header.timestamp = int(now.timestamp())
+
+    _add_alert(
+        feed,
+        "line-6",
+        route_id="6",
+        effect="SIGNIFICANT_DELAYS",
+        header="Line 6 Finch West: Delays westbound due to a mechanical problem.",
+        start=now - timedelta(minutes=1),
+    )
+    _add_alert(
+        feed,
+        "route-6",
+        route_id="6",
+        effect="DETOUR",
+        header="6 Bay: Detour due to road work.",
+        start=now - timedelta(minutes=1),
+    )
+
+    data = parser.parse_feed_message(feed, now=now, upcoming_hours=24)
+
+    assert data["subway"]["line_statuses"]["6"]["service_status"] == "Delays"
+    assert data["subway"]["line_statuses"]["6"]["active_count"] == 1
+    assert data["surface"]["active_route_count"] == 1
+    assert data["surface"]["routes"][0]["name"] == "6 Bay"
