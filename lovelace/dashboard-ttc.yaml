@@ -1,8 +1,8 @@
-title: TTC
+title: TTC Service
 views:
-  - title: TTC
-    path: ttc
-    icon: mdi:train-car
+  - title: Live
+    path: ttc-live
+    icon: mdi:transit-connection-variant
     cards:
       - type: custom:ttc-service-alerts-card
         entity: sensor.ttc_service_alerts
@@ -11,18 +11,310 @@ views:
         accessibility_entity: sensor.ttc_accessibility_alerts
         tracked_entity: sensor.ttc_tracked_routes
         title: TTC Service
-        max_items: 10
+        default_view: all
+        max_items: 12
+
+      - type: grid
+        title: Subway Lines
+        columns: 2
+        square: false
+        cards:
+          - type: entity
+            entity: sensor.ttc_line_1_status
+            name: Line 1
+            icon: mdi:numeric-1-circle
+          - type: entity
+            entity: sensor.ttc_line_2_status
+            name: Line 2
+            icon: mdi:numeric-2-circle
+          - type: entity
+            entity: sensor.ttc_line_4_status
+            name: Line 4
+            icon: mdi:numeric-4-circle
+          - type: entity
+            entity: sensor.ttc_line_5_status
+            name: Line 5
+            icon: mdi:numeric-5-circle
+          - type: entity
+            entity: sensor.ttc_line_6_status
+            name: Line 6
+            icon: mdi:numeric-6-circle
+
       - type: entities
-        title: TTC Sensors
+        title: TTC Overview
+        show_header_toggle: false
         entities:
-          - sensor.ttc_service_alerts
-          - sensor.ttc_subway_status
-          - sensor.ttc_surface_alerts
-          - sensor.ttc_accessibility_alerts
-          - sensor.ttc_tracked_routes
-          - sensor.ttc_feed_updated
-          - sensor.ttc_line_1_status
-          - sensor.ttc_line_2_status
-          - sensor.ttc_line_4_status
-          - sensor.ttc_line_5_status
-          - sensor.ttc_line_6_status
+          - entity: sensor.ttc_service_alerts
+            name: Active alerts
+          - entity: sensor.ttc_subway_status
+            name: Subway status
+          - entity: sensor.ttc_surface_alerts
+            name: Surface routes affected
+          - entity: sensor.ttc_accessibility_alerts
+            name: Accessibility alerts
+          - entity: sensor.ttc_tracked_routes
+            name: Tracked route alerts
+          - entity: sensor.ttc_feed_updated
+            name: Feed updated
+
+      - type: button
+        name: Refresh TTC Feed
+        icon: mdi:refresh
+        tap_action:
+          action: call-service
+          service: ttc_service_alerts.refresh
+
+  - title: Subway
+    path: ttc-subway
+    icon: mdi:subway-variant
+    cards:
+      - type: custom:ttc-service-alerts-card
+        entity: sensor.ttc_service_alerts
+        subway_entity: sensor.ttc_subway_status
+        surface_entity: sensor.ttc_surface_alerts
+        accessibility_entity: sensor.ttc_accessibility_alerts
+        tracked_entity: sensor.ttc_tracked_routes
+        title: TTC Subway
+        default_view: subway
+        max_items: 12
+
+      - type: entities
+        title: Line 1 Yonge-University
+        show_header_toggle: false
+        entities:
+          - entity: sensor.ttc_line_1_status
+            name: Status
+          - type: attribute
+            entity: sensor.ttc_line_1_status
+            attribute: delay_summary
+            name: Current delay info
+          - type: attribute
+            entity: sensor.ttc_line_1_status
+            attribute: upcoming_delay_summary
+            name: Upcoming delay info
+          - type: attribute
+            entity: sensor.ttc_line_1_status
+            attribute: active_count
+            name: Active alerts
+          - type: attribute
+            entity: sensor.ttc_line_1_status
+            attribute: upcoming_count
+            name: Upcoming alerts
+
+      - type: entities
+        title: Line 2 Bloor-Danforth
+        show_header_toggle: false
+        entities:
+          - entity: sensor.ttc_line_2_status
+            name: Status
+          - type: attribute
+            entity: sensor.ttc_line_2_status
+            attribute: delay_summary
+            name: Current delay info
+          - type: attribute
+            entity: sensor.ttc_line_2_status
+            attribute: upcoming_delay_summary
+            name: Upcoming delay info
+          - type: attribute
+            entity: sensor.ttc_line_2_status
+            attribute: active_count
+            name: Active alerts
+          - type: attribute
+            entity: sensor.ttc_line_2_status
+            attribute: upcoming_count
+            name: Upcoming alerts
+
+      - type: entities
+        title: Line 4 Sheppard
+        show_header_toggle: false
+        entities:
+          - entity: sensor.ttc_line_4_status
+            name: Status
+          - type: attribute
+            entity: sensor.ttc_line_4_status
+            attribute: delay_summary
+            name: Current delay info
+          - type: attribute
+            entity: sensor.ttc_line_4_status
+            attribute: upcoming_delay_summary
+            name: Upcoming delay info
+          - type: attribute
+            entity: sensor.ttc_line_4_status
+            attribute: active_count
+            name: Active alerts
+          - type: attribute
+            entity: sensor.ttc_line_4_status
+            attribute: upcoming_count
+            name: Upcoming alerts
+
+      - type: entities
+        title: Line 5 Eglinton
+        show_header_toggle: false
+        entities:
+          - entity: sensor.ttc_line_5_status
+            name: Status
+          - type: attribute
+            entity: sensor.ttc_line_5_status
+            attribute: delay_summary
+            name: Current delay info
+          - type: attribute
+            entity: sensor.ttc_line_5_status
+            attribute: upcoming_delay_summary
+            name: Upcoming delay info
+          - type: attribute
+            entity: sensor.ttc_line_5_status
+            attribute: active_count
+            name: Active alerts
+          - type: attribute
+            entity: sensor.ttc_line_5_status
+            attribute: upcoming_count
+            name: Upcoming alerts
+
+      - type: entities
+        title: Line 6 Finch West
+        show_header_toggle: false
+        entities:
+          - entity: sensor.ttc_line_6_status
+            name: Status
+          - type: attribute
+            entity: sensor.ttc_line_6_status
+            attribute: delay_summary
+            name: Current delay info
+          - type: attribute
+            entity: sensor.ttc_line_6_status
+            attribute: upcoming_delay_summary
+            name: Upcoming delay info
+          - type: attribute
+            entity: sensor.ttc_line_6_status
+            attribute: active_count
+            name: Active alerts
+          - type: attribute
+            entity: sensor.ttc_line_6_status
+            attribute: upcoming_count
+            name: Upcoming alerts
+
+  - title: Surface
+    path: ttc-surface
+    icon: mdi:bus-clock
+    cards:
+      - type: custom:ttc-service-alerts-card
+        entity: sensor.ttc_service_alerts
+        subway_entity: sensor.ttc_subway_status
+        surface_entity: sensor.ttc_surface_alerts
+        accessibility_entity: sensor.ttc_accessibility_alerts
+        tracked_entity: sensor.ttc_tracked_routes
+        title: TTC Surface Routes
+        default_view: surface
+        max_items: 14
+
+      - type: entities
+        title: Surface Route Summary
+        show_header_toggle: false
+        entities:
+          - entity: sensor.ttc_surface_alerts
+            name: Affected routes
+          - type: attribute
+            entity: sensor.ttc_surface_alerts
+            attribute: active_count
+            name: Active surface alerts
+          - type: attribute
+            entity: sensor.ttc_surface_alerts
+            attribute: upcoming_count
+            name: Upcoming surface alerts
+          - type: attribute
+            entity: sensor.ttc_surface_alerts
+            attribute: status
+            name: Worst current status
+
+      - type: entities
+        title: Tracked Routes
+        show_header_toggle: false
+        entities:
+          - entity: sensor.ttc_tracked_routes
+            name: Active tracked alerts
+          - type: attribute
+            entity: sensor.ttc_tracked_routes
+            attribute: routes
+            name: Routes
+          - type: attribute
+            entity: sensor.ttc_tracked_routes
+            attribute: upcoming_count
+            name: Upcoming tracked alerts
+          - type: attribute
+            entity: sensor.ttc_tracked_routes
+            attribute: status
+            name: Worst tracked status
+
+  - title: Accessibility
+    path: ttc-accessibility
+    icon: mdi:elevator
+    cards:
+      - type: custom:ttc-service-alerts-card
+        entity: sensor.ttc_service_alerts
+        subway_entity: sensor.ttc_subway_status
+        surface_entity: sensor.ttc_surface_alerts
+        accessibility_entity: sensor.ttc_accessibility_alerts
+        tracked_entity: sensor.ttc_tracked_routes
+        title: TTC Accessibility
+        default_view: accessibility
+        max_items: 14
+
+      - type: entities
+        title: Accessibility Summary
+        show_header_toggle: false
+        entities:
+          - entity: sensor.ttc_accessibility_alerts
+            name: Active accessibility alerts
+          - type: attribute
+            entity: sensor.ttc_accessibility_alerts
+            attribute: upcoming_count
+            name: Upcoming accessibility alerts
+          - type: attribute
+            entity: sensor.ttc_accessibility_alerts
+            attribute: status
+            name: Worst current status
+          - entity: sensor.ttc_feed_updated
+            name: Feed updated
+
+  - title: Feed
+    path: ttc-feed
+    icon: mdi:database-clock
+    cards:
+      - type: entities
+        title: Feed Health
+        show_header_toggle: false
+        entities:
+          - entity: sensor.ttc_feed_updated
+            name: Feed updated
+          - type: attribute
+            entity: sensor.ttc_service_alerts
+            attribute: fetched_at
+            name: Last fetched
+          - type: attribute
+            entity: sensor.ttc_service_alerts
+            attribute: feed
+            name: Feed
+          - type: attribute
+            entity: sensor.ttc_service_alerts
+            attribute: source_url
+            name: Source URL
+          - type: attribute
+            entity: sensor.ttc_service_alerts
+            attribute: gtfs_realtime_version
+            name: GTFS-RT version
+          - type: attribute
+            entity: sensor.ttc_service_alerts
+            attribute: active_alerts_truncated
+            name: Hidden active alerts
+          - type: attribute
+            entity: sensor.ttc_service_alerts
+            attribute: upcoming_alerts_truncated
+            name: Hidden upcoming alerts
+
+      - type: button
+        name: Refresh TTC Feed
+        icon: mdi:refresh
+        tap_action:
+          action: call-service
+          service: ttc_service_alerts.refresh
+

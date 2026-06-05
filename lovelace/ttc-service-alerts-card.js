@@ -18,9 +18,10 @@ class TtcServiceAlertsCard extends HTMLElement {
       tracked_entity: "sensor.ttc_tracked_routes",
       title: "TTC Service",
       max_items: 8,
+      default_view: "all",
       ...config,
     };
-    this._view = this._view || "all";
+    this._view = this._view || this._config.default_view || "all";
   }
 
   set hass(hass) {

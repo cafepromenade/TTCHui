@@ -1,7 +1,7 @@
 {
   "domain": "ttc_service_alerts",
   "name": "TTC Service Alerts",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "documentation": "https://github.com/cafepromenade/TTCHui",
   "issue_tracker": "https://github.com/cafepromenade/TTCHui/issues",
   "codeowners": ["@cafepromenade"],

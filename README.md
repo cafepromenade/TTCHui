@@ -9,7 +9,7 @@ surface route impacts, accessibility issues, tracked routes, and feed freshness.
 
 - Live active TTC service alerts from the official GTFS-RT binary feed.
 - Upcoming planned alerts inside a configurable horizon.
-- Subway line status for Line 1, Line 2, Line 4, and Line 5 when present in the feed.
+- Subway line status for Line 1, Line 2, Line 4, Line 5, and Line 6 when present in the feed.
 - Bus and streetcar route summaries grouped by affected route.
 - Elevator and escalator accessibility alerts.
 - Optional tracked route filter, for example `1,2,501,512,90`.
@@ -56,6 +56,13 @@ max_items: 10
 ```
 
 A full example view is in `lovelace/dashboard-ttc.yaml`.
+
+## TTC Dashboard
+
+`lovelace/dashboard-ttc.yaml` is a dedicated TTC dashboard with separate views
+for live alerts, subway line status, surface routes, accessibility alerts, and
+feed diagnostics. It uses the custom TTC card plus native Home Assistant entity
+cards for each subway line.
 
 ## Entities
 
