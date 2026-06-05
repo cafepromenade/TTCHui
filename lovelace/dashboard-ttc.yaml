@@ -15,30 +15,70 @@ views:
         max_items: 12
 
       - type: grid
-        title: Subway Lines
-        columns: 2
+        title: Network Snapshot
+        columns: 3
         square: false
         cards:
-          - type: entity
+          - type: tile
+            entity: sensor.ttc_service_alerts
+            name: Active alerts
+            icon: mdi:alert-decagram
+          - type: tile
+            entity: sensor.ttc_subway_status
+            name: Subway
+            icon: mdi:subway-variant
+          - type: tile
+            entity: sensor.ttc_surface_alerts
+            name: Surface routes
+            icon: mdi:bus-clock
+          - type: tile
+            entity: sensor.ttc_accessibility_alerts
+            name: Accessibility
+            icon: mdi:elevator
+          - type: tile
+            entity: sensor.ttc_tracked_routes
+            name: Tracked routes
+            icon: mdi:map-marker-path
+          - type: tile
+            entity: sensor.ttc_feed_updated
+            name: Feed updated
+            icon: mdi:clock-check
+
+      - type: grid
+        title: Subway Lines
+        columns: 3
+        square: false
+        cards:
+          - type: tile
             entity: sensor.ttc_line_1_status
             name: Line 1
             icon: mdi:numeric-1-circle
-          - type: entity
+          - type: tile
             entity: sensor.ttc_line_2_status
             name: Line 2
             icon: mdi:numeric-2-circle
-          - type: entity
+          - type: tile
             entity: sensor.ttc_line_4_status
             name: Line 4
             icon: mdi:numeric-4-circle
-          - type: entity
+          - type: tile
             entity: sensor.ttc_line_5_status
             name: Line 5
             icon: mdi:numeric-5-circle
-          - type: entity
+          - type: tile
             entity: sensor.ttc_line_6_status
             name: Line 6
             icon: mdi:numeric-6-circle
+
+      - type: history-graph
+        title: Subway Status History
+        hours_to_show: 24
+        entities:
+          - sensor.ttc_line_1_status
+          - sensor.ttc_line_2_status
+          - sensor.ttc_line_4_status
+          - sensor.ttc_line_5_status
+          - sensor.ttc_line_6_status
 
       - type: entities
         title: TTC Overview
@@ -78,6 +118,42 @@ views:
         default_view: subway
         max_items: 12
 
+      - type: grid
+        title: Current Line Status
+        columns: 3
+        square: false
+        cards:
+          - type: tile
+            entity: sensor.ttc_line_1_status
+            name: Line 1
+            icon: mdi:numeric-1-circle
+          - type: tile
+            entity: sensor.ttc_line_2_status
+            name: Line 2
+            icon: mdi:numeric-2-circle
+          - type: tile
+            entity: sensor.ttc_line_4_status
+            name: Line 4
+            icon: mdi:numeric-4-circle
+          - type: tile
+            entity: sensor.ttc_line_5_status
+            name: Line 5
+            icon: mdi:numeric-5-circle
+          - type: tile
+            entity: sensor.ttc_line_6_status
+            name: Line 6
+            icon: mdi:numeric-6-circle
+
+      - type: history-graph
+        title: Line Status Changes
+        hours_to_show: 24
+        entities:
+          - sensor.ttc_line_1_status
+          - sensor.ttc_line_2_status
+          - sensor.ttc_line_4_status
+          - sensor.ttc_line_5_status
+          - sensor.ttc_line_6_status
+
       - type: entities
         title: Line 1 Yonge-University
         show_header_toggle: false
@@ -98,8 +174,16 @@ views:
             name: Active alerts
           - type: attribute
             entity: sensor.ttc_line_1_status
+            attribute: delay_count
+            name: Active delay items
+          - type: attribute
+            entity: sensor.ttc_line_1_status
             attribute: upcoming_count
             name: Upcoming alerts
+          - type: attribute
+            entity: sensor.ttc_line_1_status
+            attribute: upcoming_delay_count
+            name: Upcoming delay items
 
       - type: entities
         title: Line 2 Bloor-Danforth
@@ -121,8 +205,16 @@ views:
             name: Active alerts
           - type: attribute
             entity: sensor.ttc_line_2_status
+            attribute: delay_count
+            name: Active delay items
+          - type: attribute
+            entity: sensor.ttc_line_2_status
             attribute: upcoming_count
             name: Upcoming alerts
+          - type: attribute
+            entity: sensor.ttc_line_2_status
+            attribute: upcoming_delay_count
+            name: Upcoming delay items
 
       - type: entities
         title: Line 4 Sheppard
@@ -144,8 +236,16 @@ views:
             name: Active alerts
           - type: attribute
             entity: sensor.ttc_line_4_status
+            attribute: delay_count
+            name: Active delay items
+          - type: attribute
+            entity: sensor.ttc_line_4_status
             attribute: upcoming_count
             name: Upcoming alerts
+          - type: attribute
+            entity: sensor.ttc_line_4_status
+            attribute: upcoming_delay_count
+            name: Upcoming delay items
 
       - type: entities
         title: Line 5 Eglinton
@@ -167,8 +267,16 @@ views:
             name: Active alerts
           - type: attribute
             entity: sensor.ttc_line_5_status
+            attribute: delay_count
+            name: Active delay items
+          - type: attribute
+            entity: sensor.ttc_line_5_status
             attribute: upcoming_count
             name: Upcoming alerts
+          - type: attribute
+            entity: sensor.ttc_line_5_status
+            attribute: upcoming_delay_count
+            name: Upcoming delay items
 
       - type: entities
         title: Line 6 Finch West
@@ -190,8 +298,16 @@ views:
             name: Active alerts
           - type: attribute
             entity: sensor.ttc_line_6_status
+            attribute: delay_count
+            name: Active delay items
+          - type: attribute
+            entity: sensor.ttc_line_6_status
             attribute: upcoming_count
             name: Upcoming alerts
+          - type: attribute
+            entity: sensor.ttc_line_6_status
+            attribute: upcoming_delay_count
+            name: Upcoming delay items
 
   - title: Surface
     path: ttc-surface
@@ -206,6 +322,31 @@ views:
         title: TTC Surface Routes
         default_view: surface
         max_items: 14
+
+      - type: grid
+        title: Surface Snapshot
+        columns: 3
+        square: false
+        cards:
+          - type: tile
+            entity: sensor.ttc_surface_alerts
+            name: Affected routes
+            icon: mdi:bus-clock
+          - type: tile
+            entity: sensor.ttc_tracked_routes
+            name: Tracked routes
+            icon: mdi:map-marker-path
+          - type: tile
+            entity: sensor.ttc_service_alerts
+            name: All active alerts
+            icon: mdi:alert-decagram
+
+      - type: history-graph
+        title: Surface And Tracked Alert History
+        hours_to_show: 24
+        entities:
+          - sensor.ttc_surface_alerts
+          - sensor.ttc_tracked_routes
 
       - type: entities
         title: Surface Route Summary
@@ -259,6 +400,26 @@ views:
         default_view: accessibility
         max_items: 14
 
+      - type: grid
+        title: Accessibility Snapshot
+        columns: 2
+        square: false
+        cards:
+          - type: tile
+            entity: sensor.ttc_accessibility_alerts
+            name: Accessibility alerts
+            icon: mdi:elevator
+          - type: tile
+            entity: sensor.ttc_feed_updated
+            name: Feed updated
+            icon: mdi:clock-check
+
+      - type: history-graph
+        title: Accessibility Alert History
+        hours_to_show: 24
+        entities:
+          - sensor.ttc_accessibility_alerts
+
       - type: entities
         title: Accessibility Summary
         show_header_toggle: false
@@ -280,6 +441,32 @@ views:
     path: ttc-feed
     icon: mdi:database-clock
     cards:
+      - type: grid
+        title: Feed Snapshot
+        columns: 3
+        square: false
+        cards:
+          - type: tile
+            entity: sensor.ttc_feed_updated
+            name: Feed updated
+            icon: mdi:clock-check
+          - type: tile
+            entity: sensor.ttc_service_alerts
+            name: Active alerts
+            icon: mdi:alert-decagram
+          - type: tile
+            entity: sensor.ttc_subway_status
+            name: Subway status
+            icon: mdi:subway-variant
+
+      - type: history-graph
+        title: Service Alert History
+        hours_to_show: 24
+        entities:
+          - sensor.ttc_service_alerts
+          - sensor.ttc_surface_alerts
+          - sensor.ttc_accessibility_alerts
+
       - type: entities
         title: Feed Health
         show_header_toggle: false
@@ -317,4 +504,3 @@ views:
         tap_action:
           action: call-service
           service: ttc_service_alerts.refresh
-

@@ -62,7 +62,8 @@ A full example view is in `lovelace/dashboard-ttc.yaml`.
 `lovelace/dashboard-ttc.yaml` is a dedicated TTC dashboard with separate views
 for live alerts, subway line status, surface routes, accessibility alerts, and
 feed diagnostics. It uses the custom TTC card plus native Home Assistant entity
-cards for each subway line.
+cards, tiles, 24-hour history graphs, delay-summary attributes, and feed-health
+details for each subway line.
 
 ## Entities
 
