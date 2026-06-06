@@ -7,7 +7,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorEntityDescription
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorEntityDescription,
+    SensorStateClass,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
@@ -15,7 +20,12 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import ATTR_ATTRIBUTION, DOMAIN
 from .coordinator import TtcServiceAlertsCoordinator
-from .parser import SUBWAY_LINES
+from .parser import (
+    SUBWAY_LINES,
+    line_delay_count,
+    line_from_data,
+    line_status_value,
+)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -67,38 +77,23 @@ def _tracked_attrs(data: dict[str, Any]) -> dict[str, Any]:
     return {**_base_attrs(data), **tracked}
 
 
-def _line(data: dict[str, Any], route_id: str) -> dict[str, Any]:
-    return data.get("subway", {}).get("line_statuses", {}).get(
-        route_id,
-        {
-            "route_id": route_id,
-            "name": SUBWAY_LINES.get(route_id, f"Line {route_id}"),
-            "status": "Normal service",
-            "service_status": "Normal service",
-            "active_count": 0,
-            "upcoming_count": 0,
-            "delay_count": 0,
-            "upcoming_delay_count": 0,
-            "delay_summary": "No current delay info.",
-            "upcoming_delay_summary": "No current delay info.",
-            "delay_alerts": [],
-            "upcoming_delay_alerts": [],
-            "alerts": [],
-            "upcoming_alerts": [],
-        },
-    )
-
-
 def _line_value(route_id: str) -> Callable[[dict[str, Any]], Any]:
     def value(data: dict[str, Any]) -> Any:
-        return _line(data, route_id).get("service_status", "Normal service")
+        return line_status_value(data, route_id)
+
+    return value
+
+
+def _line_delay_value(route_id: str) -> Callable[[dict[str, Any]], Any]:
+    def value(data: dict[str, Any]) -> Any:
+        return line_delay_count(data, route_id)
 
     return value
 
 
 def _line_attrs(route_id: str) -> Callable[[dict[str, Any]], dict[str, Any]]:
     def attrs(data: dict[str, Any]) -> dict[str, Any]:
-        return {**_base_attrs(data), **_line(data, route_id)}
+        return {**_base_attrs(data), **line_from_data(data, route_id)}
 
     return attrs
 
@@ -159,6 +154,18 @@ SENSORS: tuple[TtcSensorDescription, ...] = (
             name=f"Line {route_id} status",
             icon="mdi:subway-variant",
             value=_line_value(route_id),
+            attrs=_line_attrs(route_id),
+        )
+        for route_id in SUBWAY_LINES
+    ),
+    *(
+        TtcSensorDescription(
+            key=f"line_{route_id}_delays",
+            name=f"Line {route_id} delays",
+            icon="mdi:alert-circle-outline",
+            native_unit_of_measurement="alerts",
+            state_class=SensorStateClass.MEASUREMENT,
+            value=_line_delay_value(route_id),
             attrs=_line_attrs(route_id),
         )
         for route_id in SUBWAY_LINES

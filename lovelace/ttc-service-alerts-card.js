@@ -352,6 +352,67 @@ class TtcServiceAlertsCard extends HTMLElement {
           .bad { border-left-color: var(--error-color, #c62828); }
           .watch { border-left-color: #d88c00; }
           .normal { border-left-color: var(--success-color, #2e7d32); }
+          .ttc-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
+          }
+          .ttc-board-line {
+            border-radius: 10px;
+            overflow: hidden;
+            background: var(--card-background-color);
+            box-shadow: inset 0 0 0 1px var(--divider-color);
+            display: flex;
+            flex-direction: column;
+          }
+          .ttc-board-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+          }
+          .ttc-roundel {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            flex: 0 0 auto;
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.25);
+          }
+          .ttc-board-name {
+            font-weight: 700;
+            font-size: 0.92rem;
+            line-height: 1.2;
+            overflow-wrap: anywhere;
+            min-width: 0;
+          }
+          .ttc-board-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 6px 12px;
+            font-weight: 700;
+            font-size: 0.82rem;
+          }
+          .ttc-board-count {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 999px;
+            padding: 1px 8px;
+            font-size: 0.75rem;
+          }
+          .level-normal .ttc-board-bar { background: #1a9b4b; color: #ffffff; }
+          .level-delay .ttc-board-bar { background: #f4b400; color: #2a2200; }
+          .level-no_service .ttc-board-bar { background: #d32f2f; color: #ffffff; }
+          .ttc-board-body {
+            padding: 8px 12px 11px;
+          }
+          .ttc-board-body .ttc-line-delay:first-child {
+            margin-top: 0;
+          }
           @media (max-width: 560px) {
             .ttc-head {
               grid-template-columns: auto 1fr auto;
@@ -473,27 +534,46 @@ class TtcServiceAlertsCard extends HTMLElement {
 
   _lineGrid(lines) {
     if (!lines.length) return this._empty("No subway line data.");
-    return `<div class="ttc-lines">${lines.map((line) => {
+    return `<div class="ttc-board">${lines.map((line) => {
+      const level = this._lineLevel(line);
+      const color = line.color || "#6c6c6c";
+      const label = line.label || line.route_id || "?";
+      const name = line.name || `Line ${line.route_id || ""}`.trim();
       const status = line.status || "Normal service";
+      const barText = level === "normal" ? "Good Service" : status;
       const activeCount = Number(line.active_count || 0);
-      const upcomingCount = Number(line.upcoming_count || 0);
-      const countText = activeCount
-        ? `${activeCount} active${upcomingCount ? `, ${upcomingCount} upcoming` : ""}`
-        : upcomingCount
-          ? `${upcomingCount} upcoming`
-          : "Clear";
+      const roundelText = this._contrastText(color);
       return `
-        <div class="ttc-line ${this._statusTone(status)}">
-          <div class="ttc-line-head">
-            <div>
-              <strong>${this._esc(line.name || line.route_id)}</strong>
-              <span class="ttc-line-status">${this._esc(status)}</span>
-            </div>
-            <span class="ttc-line-badge">${this._esc(countText)}</span>
+        <div class="ttc-board-line level-${level}">
+          <div class="ttc-board-head">
+            <span class="ttc-roundel" style="background:${this._escAttr(color)};color:${roundelText};">${this._esc(label)}</span>
+            <div class="ttc-board-name">${this._esc(name)}</div>
           </div>
-          ${this._lineDelayDetails(line)}
+          <div class="ttc-board-bar">
+            <span>${this._esc(barText)}</span>
+            ${activeCount ? `<span class="ttc-board-count">${activeCount}</span>` : ""}
+          </div>
+          <div class="ttc-board-body">${this._lineDelayDetails(line)}</div>
         </div>`;
     }).join("")}</div>`;
+  }
+
+  _lineLevel(line) {
+    if (line && line.status_level) return line.status_level;
+    const status = String((line && line.status) || "").toLowerCase();
+    if (!status || status.includes("normal")) return "normal";
+    if (status.includes("no service")) return "no_service";
+    return "delay";
+  }
+
+  _contrastText(hex) {
+    const c = String(hex || "").replace("#", "");
+    if (c.length < 6) return "#ffffff";
+    const r = parseInt(c.slice(0, 2), 16);
+    const g = parseInt(c.slice(2, 4), 16);
+    const b = parseInt(c.slice(4, 6), 16);
+    const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return lum > 0.62 ? "#1b1b1b" : "#ffffff";
   }
 
   _lineDelayDetails(line) {
@@ -575,7 +655,7 @@ class TtcServiceAlertsCard extends HTMLElement {
   _statusClass(status) {
     const text = String(status || "").toLowerCase();
     if (!text || text.includes("normal")) return "status-normal";
-    if (text.includes("no service") || text.includes("delay")) return "status-bad";
+    if (text.includes("no service")) return "status-bad";
     return "status-watch";
   }
 

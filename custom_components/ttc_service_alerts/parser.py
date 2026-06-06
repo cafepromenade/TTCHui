@@ -19,6 +19,24 @@ SUBWAY_LINES: dict[str, str] = {
     "6": "Line 6 Finch West",
 }
 
+# Official TTC line colours, used for line roundels and the transit-board card.
+SUBWAY_LINE_COLORS: dict[str, str] = {
+    "1": "#f8c302",  # Yonge-University - yellow
+    "2": "#16a753",  # Bloor-Danforth - green
+    "4": "#b32078",  # Sheppard - purple
+    "5": "#f87005",  # Eglinton - orange
+    "6": "#8a999a",  # Finch West - grey
+}
+
+# Short roundel labels shown inside the coloured line "logo".
+SUBWAY_LINE_LABELS: dict[str, str] = {
+    "1": "1",
+    "2": "2",
+    "4": "4",
+    "5": "5",
+    "6": "6",
+}
+
 SUBWAY_LINE_PATTERNS: dict[str, re.Pattern[str]] = {
     "1": re.compile(r"\b(line\s*1|yonge-university)\b", re.I),
     "2": re.compile(r"\b(line\s*2|bloor-danforth)\b", re.I),
@@ -276,8 +294,11 @@ def _subway_summary(
             {
                 "route_id": route_id,
                 "name": SUBWAY_LINES.get(route_id, f"Line {route_id}"),
+                "label": SUBWAY_LINE_LABELS.get(route_id, route_id),
+                "color": SUBWAY_LINE_COLORS.get(route_id, "#6c6c6c"),
                 "status": _status_from_alerts(active),
                 "service_status": _status_from_alerts(active),
+                "status_level": _status_level_from_alerts(active),
                 "active_count": len(active),
                 "upcoming_count": len(upcoming),
                 "delay_count": len(active_delay_alerts),
@@ -380,6 +401,24 @@ def _status_from_alerts(alerts: list[dict[str, Any]]) -> str:
         return "Normal service"
     worst = max(alerts, key=lambda alert: alert.get("severity", 0))
     return worst.get("effect_label") or "Service alert"
+
+
+# Status-board levels: green (normal), yellow (delay), red (no service).
+STATUS_LEVEL_NORMAL = "normal"
+STATUS_LEVEL_DELAY = "delay"
+STATUS_LEVEL_NO_SERVICE = "no_service"
+
+
+def _status_level_from_alerts(alerts: list[dict[str, Any]]) -> str:
+    """Reduce active alerts to a transit-board severity level."""
+    if not alerts:
+        return STATUS_LEVEL_NORMAL
+    if any(alert.get("effect") == "NO_SERVICE" for alert in alerts):
+        return STATUS_LEVEL_NO_SERVICE
+    # Anything active that isn't purely "additional service" counts as a delay.
+    if all(alert.get("effect") == "ADDITIONAL_SERVICE" for alert in alerts):
+        return STATUS_LEVEL_NORMAL
+    return STATUS_LEVEL_DELAY
 
 
 def _delay_info(alerts: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -515,3 +554,62 @@ def _route_sort_value(route: str) -> tuple[int, str]:
     if route.isdigit():
         return int(route), route
     return 99999, route
+
+
+# --- Per-line entity helpers -------------------------------------------------
+# These are pure functions over the parsed coordinator payload so that the
+# sensor and binary_sensor platforms share one source of truth (and so they
+# stay unit-testable without importing Home Assistant).
+
+LINE_NORMAL_STATUS = "Normal service"
+
+
+def default_line(route_id: str) -> dict[str, Any]:
+    """Return the placeholder line summary used when a line has no feed data."""
+    return {
+        "route_id": route_id,
+        "name": SUBWAY_LINES.get(route_id, f"Line {route_id}"),
+        "label": SUBWAY_LINE_LABELS.get(route_id, route_id),
+        "color": SUBWAY_LINE_COLORS.get(route_id, "#6c6c6c"),
+        "status": LINE_NORMAL_STATUS,
+        "service_status": LINE_NORMAL_STATUS,
+        "status_level": STATUS_LEVEL_NORMAL,
+        "active_count": 0,
+        "upcoming_count": 0,
+        "delay_count": 0,
+        "upcoming_delay_count": 0,
+        "delay_summary": "No current delay info.",
+        "upcoming_delay_summary": "No current delay info.",
+        "delay_alerts": [],
+        "upcoming_delay_alerts": [],
+        "alerts": [],
+        "upcoming_alerts": [],
+    }
+
+
+def line_from_data(data: dict[str, Any] | None, route_id: str) -> dict[str, Any]:
+    """Extract a single line's summary from coordinator data, with a fallback."""
+    statuses = (data or {}).get("subway", {}).get("line_statuses", {})
+    return statuses.get(route_id, default_line(route_id))
+
+
+def line_status_value(data: dict[str, Any] | None, route_id: str) -> str:
+    """Current service status string for a line."""
+    return line_from_data(data, route_id).get("service_status") or LINE_NORMAL_STATUS
+
+
+def line_status_level(data: dict[str, Any] | None, route_id: str) -> str:
+    """Transit-board level for a line: normal / delay / no_service."""
+    return line_from_data(data, route_id).get("status_level") or STATUS_LEVEL_NORMAL
+
+
+def line_delay_count(data: dict[str, Any] | None, route_id: str) -> int:
+    """Number of active delay-type alerts on a line."""
+    return int(line_from_data(data, route_id).get("delay_count", 0) or 0)
+
+
+def line_is_disrupted(data: dict[str, Any] | None, route_id: str) -> bool:
+    """Whether a line currently has any active disruption."""
+    line = line_from_data(data, route_id)
+    status = line.get("service_status") or LINE_NORMAL_STATUS
+    return status != LINE_NORMAL_STATUS or int(line.get("active_count", 0) or 0) > 0

@@ -183,3 +183,77 @@ def test_parser_recognizes_line_6_without_promoting_plain_route_6():
     assert data["subway"]["line_statuses"]["6"]["active_count"] == 1
     assert data["surface"]["active_route_count"] == 1
     assert data["surface"]["routes"][0]["name"] == "6 Bay"
+
+
+def test_parser_exposes_line_colors_labels_and_status_levels():
+    now = datetime(2026, 6, 5, 12, 0, tzinfo=timezone.utc)
+    feed = gtfs_realtime_pb2.FeedMessage()
+    feed.header.gtfs_realtime_version = "2.0"
+    feed.header.timestamp = int(now.timestamp())
+
+    _add_alert(
+        feed,
+        "line-1-delay",
+        route_id="1",
+        effect="SIGNIFICANT_DELAYS",
+        header="Line 1 Yonge-University: Delays southbound due to a signal problem.",
+        start=now - timedelta(minutes=2),
+    )
+    _add_alert(
+        feed,
+        "line-2-no-service",
+        route_id="2",
+        effect="NO_SERVICE",
+        header="Line 2 Bloor-Danforth: No service between Kipling and Jane.",
+        start=now - timedelta(minutes=2),
+    )
+
+    data = parser.parse_feed_message(feed, now=now, upcoming_hours=24)
+
+    statuses = data["subway"]["line_statuses"]
+    # Static metadata is always present.
+    assert statuses["1"]["color"] == parser.SUBWAY_LINE_COLORS["1"]
+    assert statuses["1"]["label"] == "1"
+    assert statuses["4"]["color"] == parser.SUBWAY_LINE_COLORS["4"]
+
+    # Status levels map to the transit-board green/yellow/red scheme.
+    assert statuses["1"]["status_level"] == parser.STATUS_LEVEL_DELAY
+    assert statuses["2"]["status_level"] == parser.STATUS_LEVEL_NO_SERVICE
+    assert statuses["4"]["status_level"] == parser.STATUS_LEVEL_NORMAL
+
+
+def test_per_line_entity_helpers():
+    now = datetime(2026, 6, 5, 12, 0, tzinfo=timezone.utc)
+    feed = gtfs_realtime_pb2.FeedMessage()
+    feed.header.gtfs_realtime_version = "2.0"
+    feed.header.timestamp = int(now.timestamp())
+
+    _add_alert(
+        feed,
+        "line-1-delay",
+        route_id="1",
+        effect="SIGNIFICANT_DELAYS",
+        header="Line 1 Yonge-University: Delays southbound due to a signal problem.",
+        start=now - timedelta(minutes=2),
+    )
+
+    data = parser.parse_feed_message(feed, now=now, upcoming_hours=24)
+
+    # Disrupted line.
+    assert parser.line_status_value(data, "1") == "Delays"
+    assert parser.line_status_level(data, "1") == parser.STATUS_LEVEL_DELAY
+    assert parser.line_delay_count(data, "1") == 1
+    assert parser.line_is_disrupted(data, "1") is True
+
+    # Quiet line.
+    assert parser.line_status_value(data, "2") == parser.LINE_NORMAL_STATUS
+    assert parser.line_status_level(data, "2") == parser.STATUS_LEVEL_NORMAL
+    assert parser.line_delay_count(data, "2") == 0
+    assert parser.line_is_disrupted(data, "2") is False
+
+    # Missing data falls back to a clean default.
+    default = parser.default_line("4")
+    assert default["name"] == "Line 4 Sheppard"
+    assert default["color"] == parser.SUBWAY_LINE_COLORS["4"]
+    assert parser.line_is_disrupted(None, "4") is False
+    assert parser.line_status_level({}, "4") == parser.STATUS_LEVEL_NORMAL

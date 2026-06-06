@@ -10,6 +10,8 @@ surface route impacts, accessibility issues, tracked routes, and feed freshness.
 - Live active TTC service alerts from the official GTFS-RT binary feed.
 - Upcoming planned alerts inside a configurable horizon.
 - Subway line status for Line 1, Line 2, Line 4, Line 5, and Line 6 when present in the feed.
+- One status sensor, delay-count sensor, and "disrupted" binary sensor per subway line.
+- Transit-board styling: each line shows its official TTC colour roundel and a green/yellow/red status bar.
 - Bus and streetcar route summaries grouped by affected route.
 - Elevator and escalator accessibility alerts.
 - Optional tracked route filter, for example `1,2,501,512,90`.
@@ -73,14 +75,32 @@ details for each subway line.
 - `sensor.ttc_accessibility_alerts`: active accessibility alert count.
 - `sensor.ttc_tracked_routes`: active count for your route filter.
 - `sensor.ttc_feed_updated`: GTFS-RT feed timestamp.
-- `sensor.ttc_line_1_status`: Line 1 status with current delay details.
-- `sensor.ttc_line_2_status`: Line 2 status with current delay details.
-- `sensor.ttc_line_4_status`: Line 4 status with current delay details.
-- `sensor.ttc_line_5_status`: Line 5 status with current delay details.
-- `sensor.ttc_line_6_status`: Line 6 status with current delay details.
+- `sensor.ttc_line_N_status`: per-line service status (Lines 1, 2, 4, 5, 6) with
+  current delay details, plus `color`, `label`, and a `status_level`
+  (`normal`/`delay`/`no_service`) attribute for transit-board styling.
+- `sensor.ttc_line_N_delays`: per-line count of active delay-type alerts
+  (measurement, good for graphs and threshold automations).
+- `binary_sensor.ttc_line_N_disrupted`: per-line problem flag, `on` whenever the
+  line has an active disruption. Ideal for notifications and conditional cards.
 
 Entity IDs can differ if Home Assistant has already used these names. The card
 lets you override each entity explicitly.
+
+### Subway line colors
+
+Each line carries its official TTC colour, exposed in the `color` attribute and
+rendered by the card as a coloured line roundel:
+
+| Line | Colour | Hex |
+| --- | --- | --- |
+| 1 Yonge-University | Yellow | `#f8c302` |
+| 2 Bloor-Danforth | Green | `#16a753` |
+| 4 Sheppard | Purple | `#b32078` |
+| 5 Eglinton | Orange | `#f87005` |
+| 6 Finch West | Grey | `#8a999a` |
+
+The card draws each line like a transit display board: a **green** bar for good
+service, **yellow** for delays/reduced service, and **red** for no service.
 
 ## Service
 
