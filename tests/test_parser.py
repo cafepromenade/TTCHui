@@ -185,6 +185,31 @@ def test_parser_recognizes_line_6_without_promoting_plain_route_6():
     assert data["surface"]["routes"][0]["name"] == "6 Bay"
 
 
+def test_parser_does_not_mark_no_effect_line_5_as_disrupted():
+    now = datetime(2026, 6, 10, 13, 30, tzinfo=timezone.utc)
+    feed = gtfs_realtime_pb2.FeedMessage()
+    feed.header.gtfs_realtime_version = "2.0"
+    feed.header.timestamp = int(now.timestamp())
+
+    _add_alert(
+        feed,
+        "line-5-survey",
+        route_id="5",
+        effect="NO_EFFECT",
+        header="Are you riding Line 5 or connecting bus routes?",
+        start=now - timedelta(days=1),
+    )
+
+    data = parser.parse_feed_message(feed, now=now, upcoming_hours=24)
+
+    line_5 = data["subway"]["line_statuses"]["5"]
+    assert line_5["service_status"] == "Normal service"
+    assert line_5["status_level"] == parser.STATUS_LEVEL_NORMAL
+    assert line_5["active_count"] == 0
+    assert line_5["alerts"][0]["effect"] == "NO_EFFECT"
+    assert data["subway"]["status"] == "Normal service"
+
+
 def test_parser_exposes_line_colors_labels_and_status_levels():
     now = datetime(2026, 6, 5, 12, 0, tzinfo=timezone.utc)
     feed = gtfs_realtime_pb2.FeedMessage()

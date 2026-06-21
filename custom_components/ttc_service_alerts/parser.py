@@ -73,6 +73,7 @@ EFFECT_LABELS: dict[str, str] = {
     "ADDITIONAL_SERVICE": "Additional service",
     "STOP_MOVED": "Stop moved",
     "ACCESSIBILITY_ISSUE": "Accessibility issue",
+    "NO_EFFECT": "No effect",
     "UNKNOWN_EFFECT": "Service alert",
     "OTHER_EFFECT": "Service alert",
 }
@@ -101,6 +102,7 @@ EFFECT_SEVERITY: dict[str, int] = {
     "STOP_MOVED": 20,
     "ACCESSIBILITY_ISSUE": 20,
     "ADDITIONAL_SERVICE": 10,
+    "NO_EFFECT": 0,
     "OTHER_EFFECT": 10,
     "UNKNOWN_EFFECT": 10,
 }
@@ -288,6 +290,8 @@ def _subway_summary(
     for route_id in sorted(route_ids, key=lambda route: int(route) if route.isdigit() else route):
         active = [alert for alert in active_alerts if route_id in alert["routes"] and _is_subway_route(route_id, alert["header"])]
         upcoming = [alert for alert in upcoming_alerts if route_id in alert["routes"] and _is_subway_route(route_id, alert["header"])]
+        active_service = _service_affecting_alerts(active)
+        upcoming_service = _service_affecting_alerts(upcoming)
         active_delay_alerts = _delay_info(active)
         upcoming_delay_alerts = _delay_info(upcoming)
         lines.append(
@@ -296,11 +300,11 @@ def _subway_summary(
                 "name": SUBWAY_LINES.get(route_id, f"Line {route_id}"),
                 "label": SUBWAY_LINE_LABELS.get(route_id, route_id),
                 "color": SUBWAY_LINE_COLORS.get(route_id, "#6c6c6c"),
-                "status": _status_from_alerts(active),
-                "service_status": _status_from_alerts(active),
-                "status_level": _status_level_from_alerts(active),
-                "active_count": len(active),
-                "upcoming_count": len(upcoming),
+                "status": _status_from_alerts(active_service),
+                "service_status": _status_from_alerts(active_service),
+                "status_level": _status_level_from_alerts(active_service),
+                "active_count": len(active_service),
+                "upcoming_count": len(upcoming_service),
                 "delay_count": len(active_delay_alerts),
                 "upcoming_delay_count": len(upcoming_delay_alerts),
                 "delay_summary": _delay_summary(active_delay_alerts),
@@ -312,8 +316,8 @@ def _subway_summary(
             }
         )
 
-    active_subway = [alert for alert in active_alerts if alert["mode"] == "subway"]
-    upcoming_subway = [alert for alert in upcoming_alerts if alert["mode"] == "subway"]
+    active_subway = _service_affecting_alerts([alert for alert in active_alerts if alert["mode"] == "subway"])
+    upcoming_subway = _service_affecting_alerts([alert for alert in upcoming_alerts if alert["mode"] == "subway"])
     return {
         "status": _status_from_alerts(active_subway),
         "active_count": len(active_subway),
@@ -401,6 +405,11 @@ def _status_from_alerts(alerts: list[dict[str, Any]]) -> str:
         return "Normal service"
     worst = max(alerts, key=lambda alert: alert.get("severity", 0))
     return worst.get("effect_label") or "Service alert"
+
+
+def _service_affecting_alerts(alerts: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Alerts that should change a route or line's service status."""
+    return [alert for alert in alerts if alert.get("effect") != "NO_EFFECT"]
 
 
 # Status-board levels: green (normal), yellow (delay), red (no service).

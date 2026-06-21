@@ -19,6 +19,8 @@ class TtcServiceAlertsCard extends HTMLElement {
       title: "TTC Service",
       max_items: 8,
       default_view: "all",
+      display_mode: "standard",
+      display_size: "standard",
       ...config,
     };
     this._view = this._view || this._config.default_view || "all";
@@ -71,6 +73,7 @@ class TtcServiceAlertsCard extends HTMLElement {
     const accessAttrs = this._attrs(this._config.accessibility_entity);
     const trackedAttrs = this._attrs(this._config.tracked_entity);
     const maxItems = Number(this._config.max_items) || 8;
+    const smallDisplay = this._config.display_size === "google_home_hub_small";
     const activeCount = Number(serviceAttrs.active_count || service?.state || 0);
     const upcomingCount = Number(serviceAttrs.upcoming_count || 0);
     const highestStatus = serviceAttrs.highest_status || "Normal service";
@@ -81,7 +84,9 @@ class TtcServiceAlertsCard extends HTMLElement {
       surface: surfaceAttrs.active_route_count || 0,
       accessibility: accessAttrs.active_count || 0,
     });
-    const body = this._bodyForView({
+    const body = this._config.display_mode === "line_status_only"
+      ? this._lineGrid(subwayAttrs.lines || [])
+      : this._bodyForView({
       serviceAttrs,
       subwayAttrs,
       surfaceAttrs,
@@ -428,8 +433,79 @@ class TtcServiceAlertsCard extends HTMLElement {
               justify-content: flex-start;
             }
           }
+          .ttc-wrap.small-display {
+            padding: 10px 12px 12px;
+          }
+          .ttc-wrap.small-display .ttc-head {
+            grid-template-columns: auto 1fr auto;
+            gap: 8px;
+          }
+          .ttc-wrap.small-display .ttc-icon {
+            width: 32px;
+            height: 32px;
+          }
+          .ttc-wrap.small-display .ttc-title h2 {
+            font-size: 0.98rem;
+          }
+          .ttc-wrap.small-display .ttc-sub {
+            font-size: 0.72rem;
+          }
+          .ttc-wrap.small-display .ttc-count {
+            display: none;
+          }
+          .ttc-wrap.small-display .ttc-refresh {
+            width: 34px;
+            height: 34px;
+          }
+          .ttc-wrap.small-display .ttc-statusbar {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px;
+            margin: 10px 0 9px;
+          }
+          .ttc-wrap.small-display .ttc-stat {
+            padding: 7px 8px;
+          }
+          .ttc-wrap.small-display .ttc-tabs {
+            display: none;
+          }
+          .ttc-wrap.small-display .ttc-board {
+            grid-template-columns: 1fr;
+            gap: 9px;
+          }
+          .ttc-wrap.small-display .ttc-board-head {
+            gap: 10px;
+            padding: 10px 12px;
+          }
+          .ttc-wrap.small-display .ttc-roundel {
+            width: 48px;
+            height: 48px;
+            font-size: 1.45rem;
+          }
+          .ttc-wrap.small-display .ttc-board-name {
+            font-size: 1.05rem;
+          }
+          .ttc-wrap.small-display .ttc-board-bar {
+            padding: 8px 12px;
+            font-size: 1.05rem;
+          }
+          .ttc-wrap.small-display .ttc-board-body {
+            padding: 8px 12px 10px;
+          }
+          .ttc-wrap.small-display .ttc-line-delay {
+            font-size: 0.95rem;
+            line-height: 1.25;
+          }
+          .ttc-wrap.small-display .ttc-board-count {
+            font-size: 0.9rem;
+          }
+          .ttc-wrap.small-display .ttc-alert {
+            padding: 8px 9px;
+          }
+          .ttc-wrap.small-display .ttc-alert-desc {
+            display: none;
+          }
         </style>
-        <div class="ttc-wrap">
+        <div class="ttc-wrap${smallDisplay ? " small-display" : ""}">
           <div class="ttc-head">
             <div class="ttc-icon"><ha-icon icon="mdi:train-car"></ha-icon></div>
             <div class="ttc-title">
@@ -559,9 +635,11 @@ class TtcServiceAlertsCard extends HTMLElement {
   }
 
   _lineLevel(line) {
+    if (line && line.status === "No Effect") return "normal";
+    if (line && line.service_status === "No Effect") return "normal";
     if (line && line.status_level) return line.status_level;
     const status = String((line && line.status) || "").toLowerCase();
-    if (!status || status.includes("normal")) return "normal";
+    if (!status || status.includes("normal") || status.includes("no effect")) return "normal";
     if (status.includes("no service")) return "no_service";
     return "delay";
   }

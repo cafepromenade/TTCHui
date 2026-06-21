@@ -1,111 +1,72 @@
-title: TTC Service
+title: TTC Subway
 views:
-  - title: Live
-    path: ttc-live
-    icon: mdi:transit-connection-variant
+  - title: Subway
+    path: ttc-subway
+    icon: mdi:subway-variant
     cards:
-      - type: custom:ttc-service-alerts-card
-        entity: sensor.ttc_service_alerts
-        subway_entity: sensor.ttc_subway_status
-        surface_entity: sensor.ttc_surface_alerts
-        accessibility_entity: sensor.ttc_accessibility_alerts
-        tracked_entity: sensor.ttc_tracked_routes
-        title: TTC Service
-        default_view: all
-        max_items: 12
+      - type: custom:button-card
+        entity: sensor.ttc_subway_status
+        name: TTC Subway
+        icon: mdi:subway-variant
+        show_state: true
+        styles:
+          card:
+            - min-height: 92px
+            - padding: 14px
+            - border-radius: 12px
+          icon:
+            - width: 54px
+            - height: 54px
+            - color: "#e31837"
+          name:
+            - font-size: 26px
+            - font-weight: 900
+          state:
+            - font-size: 24px
+            - font-weight: 900
 
       - type: grid
-        title: Network Snapshot
-        columns: 3
+        columns: 1
         square: false
         cards:
-          - type: tile
-            entity: sensor.ttc_service_alerts
-            name: Active alerts
-            icon: mdi:alert-decagram
-          - type: tile
-            entity: sensor.ttc_subway_status
-            name: Subway
-            icon: mdi:subway-variant
-          - type: tile
-            entity: sensor.ttc_surface_alerts
-            name: Surface routes
-            icon: mdi:bus-clock
-          - type: tile
-            entity: sensor.ttc_accessibility_alerts
-            name: Accessibility
-            icon: mdi:elevator
-          - type: tile
-            entity: sensor.ttc_tracked_routes
-            name: Tracked routes
-            icon: mdi:map-marker-path
-          - type: tile
-            entity: sensor.ttc_feed_updated
-            name: Feed updated
-            icon: mdi:clock-check
-
-      - type: grid
-        title: Subway Lines
-        columns: 3
-        square: false
-        cards:
-          - type: tile
+          - type: custom:button-card
             entity: sensor.ttc_line_1_status
             name: Line 1
             icon: mdi:numeric-1-circle
-          - type: tile
+            show_state: true
+            state_display: "[[[ return entity?.state === 'No Effect' ? 'Normal service' : entity?.state; ]]]"
+            tap_action: { action: more-info }
+          - type: custom:button-card
             entity: sensor.ttc_line_2_status
             name: Line 2
             icon: mdi:numeric-2-circle
-          - type: tile
+            show_state: true
+            state_display: "[[[ return entity?.state === 'No Effect' ? 'Normal service' : entity?.state; ]]]"
+            tap_action: { action: more-info }
+          - type: custom:button-card
             entity: sensor.ttc_line_4_status
             name: Line 4
             icon: mdi:numeric-4-circle
-          - type: tile
+            show_state: true
+            state_display: "[[[ return entity?.state === 'No Effect' ? 'Normal service' : entity?.state; ]]]"
+            tap_action: { action: more-info }
+          - type: custom:button-card
             entity: sensor.ttc_line_5_status
             name: Line 5
             icon: mdi:numeric-5-circle
-          - type: tile
+            show_state: true
+            state_display: "[[[ return entity?.state === 'No Effect' ? 'Normal service' : entity?.state; ]]]"
+            tap_action: { action: more-info }
+          - type: custom:button-card
             entity: sensor.ttc_line_6_status
             name: Line 6
             icon: mdi:numeric-6-circle
+            show_state: true
+            state_display: "[[[ return entity?.state === 'No Effect' ? 'Normal service' : entity?.state; ]]]"
+            tap_action: { action: more-info }
 
-      - type: history-graph
-        title: Subway Status History
-        hours_to_show: 24
-        entities:
-          - sensor.ttc_line_1_status
-          - sensor.ttc_line_2_status
-          - sensor.ttc_line_4_status
-          - sensor.ttc_line_5_status
-          - sensor.ttc_line_6_status
-
-      - type: entities
-        title: TTC Overview
-        show_header_toggle: false
-        entities:
-          - entity: sensor.ttc_service_alerts
-            name: Active alerts
-          - entity: sensor.ttc_subway_status
-            name: Subway status
-          - entity: sensor.ttc_surface_alerts
-            name: Surface routes affected
-          - entity: sensor.ttc_accessibility_alerts
-            name: Accessibility alerts
-          - entity: sensor.ttc_tracked_routes
-            name: Tracked route alerts
-          - entity: sensor.ttc_feed_updated
-            name: Feed updated
-
-      - type: button
-        name: Refresh TTC Feed
-        icon: mdi:refresh
-        tap_action:
-          action: call-service
-          service: ttc_service_alerts.refresh
-
-  - title: Subway
-    path: ttc-subway
+  - title: Details
+    path: ttc-subway-details
     icon: mdi:subway-variant
     cards:
       - type: custom:ttc-service-alerts-card
